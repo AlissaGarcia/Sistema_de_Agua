@@ -17,6 +17,7 @@ class LeituraController extends Controller
     {
         $this->tarifaService = new TarifaService();
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -114,7 +115,12 @@ class LeituraController extends Controller
         ]);
     }
 
-    /**$leitura = Leitura::findOrFail($id);
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $leitura = Leitura::findOrFail($id);
         $consumidores = Consumidor::where('status', 'ativo')->get();
 
         return view('leituras.edit', [
@@ -122,12 +128,14 @@ class LeituraController extends Controller
             'leitura' => $leitura,
             'consumidores' => $consumidores
         ]);
-     * Show the form for editing the specified resource.
+    }
+
+    /**
+     * Update the specified resource in storage.
      */
-    public function edit(string $id)
+    public function update(Request $request, string $id)
     {
-        // TODO: Implementar edição de leitura
-    }$leitura = Leitura::findOrFail($id);
+        $leitura = Leitura::findOrFail($id);
 
         $validated = $request->validate([
             'leitura_anterior' => 'required|numeric|min:0',
@@ -142,18 +150,10 @@ class LeituraController extends Controller
             'leitura_atual' => $validated['leitura_atual'],
             'consumo_m3' => $consumo_m3,
             'consumo_litros' => $consumo_litros,
-        $leitura = Leitura::findOrFail($id);
-        $leitura->delete();
+        ]);
 
-        return redirect()->route('leituras.index'('leituras.show', $leitura->id)
+        return redirect()->route('leituras.show', $leitura->id)
             ->with('success', 'Leitura atualizada com sucesso!');
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        // TODO: Atualizar leitura no banco
     }
 
     /**
@@ -161,9 +161,10 @@ class LeituraController extends Controller
      */
     public function destroy(string $id)
     {
-        // TODO: Deletar leitura do banco
+        $leitura = Leitura::findOrFail($id);
+        $leitura->delete();
 
-        return redirect()->back()
+        return redirect()->route('leituras.index')
             ->with('success', 'Leitura removida com sucesso!');
     }
 }
