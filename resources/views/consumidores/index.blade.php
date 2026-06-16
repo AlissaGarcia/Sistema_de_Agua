@@ -21,19 +21,22 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($consumidores ?? [] as $consumidor)
+            @forelse($consumidores as $consumidor)
                 <tr>
-                    <td>{{ $consumidor['nome'] ?? 'N/A' }}</td>
-                    <td>{{ $consumidor['medidor'] ?? 'N/A' }}</td>
-                    <td>{{ $consumidor['endereco'] ?? 'N/A' }}</td>
-                    <td>{{ $consumidor['telefone'] ?? 'N/A' }}</td>
+                    <td>{{ $consumidor->nome }}</td>
+                    <td>{{ $consumidor->numero_medidor }}</td>
+                    <td>{{ $consumidor->endereco }}</td>
+                    <td>{{ $consumidor->telefone }}</td>
                     <td>
-                        <span class="badge {{ $consumidor['status'] === 'ativo' ? 'badge-green' : 'badge-gray' }}">
-                            {{ $consumidor['status'] ?? 'ativo' }}
+                        <span class="badge {{ $consumidor->status === 'ativo' ? 'badge-green' : 'badge-gray' }}">
+                            {{ ucfirst($consumidor->status) }}
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-ghost">Editar</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{{ route('consumidores.show', $consumidor->id) }}" class="btn btn-sm btn-ghost">Ver</a>
+                            <a href="{{ route('consumidores.edit', $consumidor->id) }}" class="btn btn-sm btn-ghost">Editar</a>
+                        </div>
                     </td>
                 </tr>
             @empty

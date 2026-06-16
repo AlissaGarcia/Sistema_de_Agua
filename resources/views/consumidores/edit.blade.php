@@ -1,0 +1,89 @@
+@extends('layouts.app')
+
+@section('content')
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+    <h2 style="font-size: 16px; font-weight: 500;">Editar consumidor</h2>
+</div>
+
+<form action="{{ route('consumidores.update', $consumidor->id) }}" method="POST" style="max-width: 600px;">
+    @csrf
+    @method('PUT')
+    
+    <div class="form-group">
+        <label class="form-label">Nome completo</label>
+        <input 
+            type="text" 
+            name="nome" 
+            class="form-input @error('nome') is-invalid @enderror" 
+            value="{{ old('nome', $consumidor->nome) }}"
+            required
+        >
+        @error('nome')
+            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Endereço</label>
+        <input 
+            type="text" 
+            name="endereco" 
+            class="form-input @error('endereco') is-invalid @enderror" 
+            value="{{ old('endereco', $consumidor->endereco) }}"
+            required
+        >
+        @error('endereco')
+            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Número do medidor</label>
+        <input 
+            type="text" 
+            name="numero_medidor" 
+            class="form-input"
+            value="{{ $consumidor->numero_medidor }}"
+            disabled
+        >
+        <small style="color: var(--color-text-secondary); margin-top: 4px; display: block;">
+            O número do medidor não pode ser alterado.
+        </small>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Telefone</label>
+        <input 
+            type="tel" 
+            name="telefone" 
+            class="form-input @error('telefone') is-invalid @enderror" 
+            value="{{ old('telefone', $consumidor->telefone) }}"
+            required
+        >
+        @error('telefone')
+            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Status</label>
+        <select 
+            name="status" 
+            class="form-input @error('status') is-invalid @enderror" 
+            required
+        >
+            <option value="ativo" {{ old('status', $consumidor->status) === 'ativo' ? 'selected' : '' }}>Ativo</option>
+            <option value="inativo" {{ old('status', $consumidor->status) === 'inativo' ? 'selected' : '' }}>Inativo</option>
+            <option value="suspenso" {{ old('status', $consumidor->status) === 'suspenso' ? 'selected' : '' }}>Suspenso</option>
+        </select>
+        @error('status')
+            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <div class="btn-row">
+        <a href="{{ route('consumidores.show', $consumidor->id) }}" class="btn">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+    </div>
+</form>
+@endsection

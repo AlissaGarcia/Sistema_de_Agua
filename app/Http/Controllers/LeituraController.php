@@ -63,6 +63,18 @@ class LeituraController extends Controller
             'leitura_atual.gt' => 'A leitura atual deve ser maior que a leitura anterior.'
         ]);
 
+        // Verificar se já existe leitura para este consumidor neste mês/ano
+        $leituraExistente = Leitura::where('consumidor_id', $validated['consumidor_id'])
+            ->where('mes', $validated['mes'])
+            ->where('ano', $validated['ano'])
+            ->exists();
+
+        if ($leituraExistente) {
+            return redirect()->back()
+                ->withErrors(['mes' => 'Já existe uma leitura registrada para este consumidor neste mês/ano.'])
+                ->withInput();
+        }
+
         // Calcular consumo em m³ e litros
         $consumo_m3 = $validated['leitura_atual'] - $validated['leitura_anterior'];
         $consumo_litros = (int)($consumo_m3 * 1000);
