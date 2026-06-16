@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Consumidor;
+use App\Models\Leitura;
+use App\Models\Fatura;
 
 class DashboardController extends Controller
 {
@@ -11,48 +14,44 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Dados mockados - substituir com dados reais do banco
+        // Obter estatísticas do banco de dados
+        $consumidoresAtivos = Consumidor::where('status', 'ativo')->count();
+        $leiturasCadastradas = Leitura::count();
+        $leiturasPendentes = Leitura::whereDoesntHave('fatura')->count();
+        
+        $faturasPendentes = Fatura::where('status', 'pendente')->count();
+        $aReceber = Fatura::where('status', 'pendente')->sum('total');
+        
+        $faturaspagas = Fatura::where('status', 'pago')->count();
+        $jaPago = Fatura::where('status', 'pago')->sum('total');
+        
+        $ultimasLeituras = Leitura::with('consumidor')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($leitura) {
+                return [
+                    'consumidor' => $leitura->consumidor->nome,
+                    'medidor' => $leitura->consumidor->numero_medidor,
+                    'consumo' => number_format($leitura->consumo_litros, 0, ',', '.') . ' L',
+                    'valor' => $leitura->fatura?->total ?? 0,
+                    'status' => $leitura->fatura?->status ?? 'sem_fatura'
+                ];
+            });
+
         $data = [
             'title' => 'Dashboard',
-            'consumidoresAtivos' => 42,
-            'leiturasCadastradas' => 38,
-            'leiturasPendentes' => 4,
-            'aReceber' => 1240.00,
-            'faturasPendentes' => 31,
-            'jaPago' => 175.00,
-            'faturaspagas' => 7,
-            'ultimasLeituras' => [
-                [
-                    'consumidor' => 'Maria das Graças',
-                    'medidor' => '#007',
-                    'consumo' => '200 L',
-                    'valor' => 25.00,
-                    'status' => 'pendente'
-                ],
-                [
-                    'consumidor' => 'João Pereira',
-                    'medidor' => '#012',
-                    'consumo' => '14.500 L',
-                    'valor' => 34.00,
-                    'status' => 'pendente'
-                ],
-                [
-                    'consumidor' => 'Ana Souza',
-                    'medidor' => '#003',
-                    'consumo' => '9.000 L',
-                    'valor' => 25.00,
-                    'status' => 'pago'
-                ],
-                [
-                    'consumidor' => 'Raimundo Feitosa',
-                    'medidor' => '#021',
-                    'consumo' => '21.000 L',
-                    'valor' => 47.00,
-                    'status' => 'pendente'
-                ],
-            ]
+            'consumidoresAtivos' => $consumidoresAtivos,
+            'leiturasCadastradas' => $leiturasCadastradas,
+            'leiturasPendentes' => $leiturasPendentes,
+            'aReceber' => $aReceber,
+            'faturasPendentes' => $faturasPendentes,
+            'jaPago' => $jaPago,
+            'faturaspagas' => $faturaspagas,
+            'ultimasLeituras' => $ultimasLeituras
         ];
 
         return view('dashboard.index', $data);
     }
 }
+

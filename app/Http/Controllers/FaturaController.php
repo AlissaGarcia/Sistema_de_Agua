@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Fatura;
+use App\Models\Consumidor;
 
 class FaturaController extends Controller
 {
@@ -11,39 +13,9 @@ class FaturaController extends Controller
      */
     public function index()
     {
-        // Dados mockados - substituir com Fatura::all()
-        $faturas = [
-            [
-                'id' => 1,
-                'consumidor' => 'João Pereira',
-                'medidor' => '#012',
-                'mes' => 'Junho',
-                'ano' => 2026,
-                'leitura_anterior' => '142.5',
-                'leitura_atual' => '157.0',
-                'consumo' => '14.500 L',
-                'taxa_fixa' => 25.00,
-                'excedente' => 9.00,
-                'total' => 34.00,
-                'status' => 'pendente',
-                'telefone' => '5588991230001'
-            ],
-            [
-                'id' => 2,
-                'consumidor' => 'Ana Souza',
-                'medidor' => '#003',
-                'mes' => 'Junho',
-                'ano' => 2026,
-                'leitura_anterior' => '89.0',
-                'leitura_atual' => '98.0',
-                'consumo' => '9.000 L',
-                'taxa_fixa' => 25.00,
-                'excedente' => 0,
-                'total' => 25.00,
-                'status' => 'pago',
-                'telefone' => '5588990012345'
-            ]
-        ];
+        $faturas = Fatura::with('consumidor')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return view('faturas.index', [
             'title' => 'Faturas',
@@ -72,7 +44,12 @@ class FaturaController extends Controller
      */
     public function show(string $id)
     {
-        // TODO: Buscar fatura no banco
+        $fatura = Fatura::with('consumidor', 'leitura')->findOrFail($id);
+
+        return view('faturas.show', [
+            'title' => 'Detalhes da fatura',
+            'fatura' => $fatura
+        ]);
     }
 
     /**
@@ -80,7 +57,12 @@ class FaturaController extends Controller
      */
     public function edit(string $id)
     {
-        // TODO: Implementar edição de fatura
+        $fatura = Fatura::findOrFail($id);
+
+        return view('faturas.edit', [
+            'title' => 'Editar fatura',
+            'fatura' => $fatura
+        ]);
     }
 
     /**
@@ -88,7 +70,17 @@ class FaturaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // TODO: Atualizar fatura no banco
+        $fatura = Fatura::findOrFail($id);
+
+        $validated = $request->validate([
+            'status' => 'required|in:pendente,pago,vencido',
+            'data_vencimento' => 'nullable|date',
+        ]);
+
+        $fatura->update($validated);
+
+        return redirect()->route('faturas.show', $fatura->id)
+            ->with('success', 'Fatura atualizada com sucesso!');
     }
 
     /**
@@ -96,7 +88,8 @@ class FaturaController extends Controller
      */
     public function destroy(string $id)
     {
-        // TODO: Deletar fatura do banco
+        $fatura = Fatura::findOrFail($id);
+        $fatura->delete();
 
         return redirect()->route('faturas.index')
             ->with('success', 'Fatura removida com sucesso!');
@@ -107,8 +100,8 @@ class FaturaController extends Controller
      */
     public function marcarPago($id)
     {
-        // TODO: Atualizar status da fatura para 'pago' no banco
-        // Fatura::find($id)->update(['status' => 'pago', 'data_pagamento' => now()]);
+        $fatura = Fatura::findOrFail($id);
+        $fatura->marcarComoPaga();
 
         return redirect()->route('faturas.index')
             ->with('success', 'Fatura marcada como paga!');
@@ -119,8 +112,12 @@ class FaturaController extends Controller
      */
     public function gerarPDF($id)
     {
+        $fatura = Fatura::with('consumidor')->findOrFail($id);
+
         // TODO: Gerar PDF da fatura
-        // return PDF::download('faturas.show', $fatura);
+        // return PDF::download('faturas.pdf', ['fatura' => $fatura]);
+        
+        return back();
     }
 
     /**
@@ -128,8 +125,15 @@ class FaturaController extends Controller
      */
     public function enviarEmail($id)
     {
+        $fatura = Fatura::with('consumidor')->findOrFail($id);
+
         // TODO: Enviar fatura por email
+        // Mail::send('emails.fatura', ['fatura' => $fatura], function ($message) use ($fatura) {
+        //     $message->to($fatura->consumidor->email)
+        //         ->subject('Fatura de água - ' . $fatura->getPeriodo());
+        // });
         
         return back()->with('success', 'Fatura enviada por email com sucesso!');
     }
 }
+

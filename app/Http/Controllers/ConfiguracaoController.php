@@ -3,24 +3,37 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Configuracao;
+use App\Services\TarifaService;
 
 class ConfiguracaoController extends Controller
 {
+    protected TarifaService $tarifaService;
+
+    public function __construct()
+    {
+        $this->tarifaService = new TarifaService();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // TODO: Buscar configuração do banco
-        $configuracao = [
-            'taxa_fixa' => 25.00,
-            'limite_consumo' => 10000,
-            'valor_excedente' => 2.00
-        ];
+        // Buscar configuração do banco ou criar com valores padrão
+        $configuracao = Configuracao::first();
+        
+        if (!$configuracao) {
+            $configuracao = Configuracao::create([
+                'taxa_fixa' => 25.00,
+                'limite_consumo' => 10000,
+                'valor_excedente' => 2.00
+            ]);
+        }
 
         return view('configuracao.index', [
             'title' => 'Configuração de tarifas',
-            'configuracao' => $configuracao
+            'configuracao' => $configuracao->toArray()
         ]);
     }
 
@@ -71,8 +84,21 @@ class ConfiguracaoController extends Controller
             'valor_excedente.required' => 'O valor do excedente é obrigatório.',
         ]);
 
-        // TODO: Atualizar configuração no banco de dados
-        // Configuracao::first()->update($validated);
+        // Validar configuração com TarifaService
+        $erros = $this->tarifaService->validarConfiguracao($validated);
+        if (!empty($erros)) {
+            return redirect()->back()
+                ->withErrors($erros)
+                ->withInput();
+        }
+
+        // Atualizar ou criar configuração
+        $configuracao = Configuracao::first();
+        if ($configuracao) {
+            $configuracao->update($validated);
+        } else {
+            $configuracao = Configuracao::create($validated);
+        }
 
         return redirect()->route('configuracao.index')
             ->with('success', 'Configuração atualizada com sucesso!');
@@ -86,3 +112,4 @@ class ConfiguracaoController extends Controller
         return redirect()->route('configuracao.index');
     }
 }
+

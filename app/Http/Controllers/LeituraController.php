@@ -3,15 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Consumidor;
+use App\Models\Leitura;
+use App\Models\Fatura;
+use App\Models\Configuracao;
+use App\Services\TarifaService;
 
 class LeituraController extends Controller
 {
+    protected TarifaService $tarifaService;
+
+    public function __construct()
+    {
+        $this->tarifaService = new TarifaService();
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // TODO: Listar leituras do banco
+        $leituras = Leitura::with('consumidor')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('leituras.index', [
+            'title' => 'Leituras',
+            'leituras' => $leituras
+        ]);
     }
 
     /**
@@ -19,18 +37,8 @@ class LeituraController extends Controller
      */
     public function create()
     {
-        $consumidores = [
-            ['id' => 1, 'nome' => 'Ana Souza', 'medidor' => '#003'],
-            ['id' => 2, 'nome' => 'Maria das Graças', 'medidor' => '#007'],
-            ['id' => 3, 'nome' => 'João Pereira', 'medidor' => '#012'],
-            ['id' => 4, 'nome' => 'Raimundo Feitosa', 'medidor' => '#021'],
-        ];
-
-        $configuracao = [
-            'taxa_fixa' => 25.00,
-            'limite_consumo' => 10000,
-            'valor_excedente' => 2.00
-        ];
+        $consumidores = Consumidor::where('status', 'ativo')->get();
+        $configuracao = $this->tarifaService->getConfiguracao();
 
         return view('leituras.create', [
             'title' => 'Registrar leitura',
@@ -45,7 +53,7 @@ class LeituraController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'consumidor_id' => 'required|integer|exists:consumidores,id',
+            'consumidor_id' => 'required|integer|exists:consumidors,id',
             'mes' => 'required|digits:2',
             'ano' => 'required|digits:4|integer',
             'leitura_anterior' => 'required|numeric|min:0',
@@ -54,30 +62,42 @@ class LeituraController extends Controller
             'leitura_atual.gt' => 'A leitura atual deve ser maior que a leitura anterior.'
         ]);
 
-        // Calcular consumo e valor
+        // Calcular consumo em m³ e litros
         $consumo_m3 = $validated['leitura_atual'] - $validated['leitura_anterior'];
-        $consumo_l = $consumo_m3 * 1000;
+        $consumo_litros = (int)($consumo_m3 * 1000);
 
-        // TODO: Buscar configuração do banco
-        $taxa_fixa = 25.00;
-        $limite_consumo = 10000;
-        $valor_excedente = 2.00;
+        // Usar TarifaService para calcular tarifa
+        $calculo = $this->tarifaService->calcularTarifa($consumo_litros);
 
-        $total = $taxa_fixa;
-        $excedente = 0;
+        // Criar leitura
+        $leitura = Leitura::create([
+            'consumidor_id' => $validated['consumidor_id'],
+            'mes' => $validated['mes'],
+            'ano' => $validated['ano'],
+            'leitura_anterior' => $validated['leitura_anterior'],
+            'leitura_atual' => $validated['leitura_atual'],
+            'consumo_m3' => $consumo_m3,
+            'consumo_litros' => $consumo_litros,
+        ]);
 
-        if ($consumo_l > $limite_consumo) {
-            $excedente = (($consumo_l - $limite_consumo) / 1000) * $valor_excedente;
-            $total = $taxa_fixa + $excedente;
-        }
+        // Gerar fatura
+        $fatura = Fatura::create([
+            'consumidor_id' => $validated['consumidor_id'],
+            'leitura_id' => $leitura->id,
+            'mes' => $validated['mes'],
+            'ano' => $validated['ano'],
+            'leitura_anterior' => $validated['leitura_anterior'],
+            'leitura_atual' => $validated['leitura_atual'],
+            'consumo_m3' => $consumo_m3,
+            'consumo_litros' => $consumo_litros,
+            'taxa_fixa' => $calculo['taxa_fixa'],
+            'taxa_excedente' => $calculo['taxa_excedente'],
+            'total' => $calculo['total'],
+            'status' => 'pendente',
+            'data_vencimento' => now()->addDays(10),
+        ]);
 
-        // TODO: Criar leitura no banco
-        // Leitura::create([...]);
-
-        // TODO: Gerar fatura
-        // Fatura::create([...]);
-
-        return redirect()->route('dashboard')
+        return redirect()->route('faturas.show', $fatura->id)
             ->with('success', 'Leitura registrada e fatura gerada com sucesso!');
     }
 
@@ -86,16 +106,47 @@ class LeituraController extends Controller
      */
     public function show(string $id)
     {
-        // TODO: Buscar leitura no banco
+        $leitura = Leitura::with('consumidor', 'fatura')->findOrFail($id);
+
+        return view('leituras.show', [
+            'title' => 'Detalhes da leitura',
+            'leitura' => $leitura
+        ]);
     }
 
-    /**
+    /**$leitura = Leitura::findOrFail($id);
+        $consumidores = Consumidor::where('status', 'ativo')->get();
+
+        return view('leituras.edit', [
+            'title' => 'Editar leitura',
+            'leitura' => $leitura,
+            'consumidores' => $consumidores
+        ]);
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
         // TODO: Implementar edição de leitura
-    }
+    }$leitura = Leitura::findOrFail($id);
+
+        $validated = $request->validate([
+            'leitura_anterior' => 'required|numeric|min:0',
+            'leitura_atual' => 'required|numeric|min:0|gt:leitura_anterior',
+        ]);
+
+        $consumo_m3 = $validated['leitura_atual'] - $validated['leitura_anterior'];
+        $consumo_litros = (int)($consumo_m3 * 1000);
+
+        $leitura->update([
+            'leitura_anterior' => $validated['leitura_anterior'],
+            'leitura_atual' => $validated['leitura_atual'],
+            'consumo_m3' => $consumo_m3,
+            'consumo_litros' => $consumo_litros,
+        $leitura = Leitura::findOrFail($id);
+        $leitura->delete();
+
+        return redirect()->route('leituras.index'('leituras.show', $leitura->id)
+            ->with('success', 'Leitura atualizada com sucesso!');
 
     /**
      * Update the specified resource in storage.
