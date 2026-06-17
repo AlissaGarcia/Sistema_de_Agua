@@ -26,18 +26,6 @@
         <div class="info-label">Endereço</div>
         <div class="info-value">{{ $consumidor->endereco }}</div>
     </div>
-    <div class="info-card">
-        <div class="info-label">Status</div>
-        <div class="info-value">
-            <span class="badge {{ $consumidor->status === 'ativo' ? 'badge-green' : 'badge-gray' }}">
-                {{ ucfirst($consumidor->status) }}
-            </span>
-        </div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Leitura inicial</div>
-        <div class="info-value">{{ number_format($consumidor->leitura_inicial, 3, ',', '.') }} m³</div>
-    </div>
 </div>
 
 <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 1rem;">Leituras registradas</h3>

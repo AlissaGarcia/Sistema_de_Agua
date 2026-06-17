@@ -10,17 +10,16 @@ class Consumidor extends Model
 {
     use HasFactory;
 
+    protected $table = 'consumidores';
+
     protected $fillable = [
         'nome',
         'endereco',
         'numero_medidor',
         'telefone',
-        'leitura_inicial',
-        'status',
     ];
 
     protected $casts = [
-        'leitura_inicial' => 'float',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -54,7 +53,7 @@ class Consumidor extends Model
      */
     public function isAtivo(): bool
     {
-        return $this->status === 'ativo';
+        return true;
     }
 
     /**

@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('configuracaos', function (Blueprint $table) {
+        Schema::create('consumidores', function (Blueprint $table) {
             $table->id();
-            $table->decimal('taxa_fixa', 10, 2)->default(25.00);
-            $table->integer('limite_consumo')->default(10000);
-            $table->decimal('valor_excedente', 10, 2)->default(2.00);
+            $table->string('nome');
+            $table->string('endereco');
+            $table->string('numero_medidor')->unique();
+            $table->string('telefone');
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('configuracaos');
+        Schema::dropIfExists('consumidores');
     }
 };

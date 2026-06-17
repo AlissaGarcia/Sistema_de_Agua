@@ -32,20 +32,6 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Limite de consumo sem excedente (litros)</label>
-        <input 
-            type="number" 
-            name="limite_consumo" 
-            class="form-input @error('limite_consumo') is-invalid @enderror" 
-            value="{{ old('limite_consumo', $configuracao['limite_consumo'] ?? 10000) }}"
-            required
-        >
-        @error('limite_consumo')
-            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-        @enderror
-    </div>
-
-    <div class="form-group">
         <label class="form-label">Valor do excedente por 1.000 litros (R$)</label>
         <input 
             type="number" 
@@ -61,7 +47,7 @@
     </div>
 
     <div class="alert-box alert-info">
-        ℹ️ Exemplo: consumo de 15.000 L → R$ {{ old('taxa_fixa', $configuracao['taxa_fixa'] ?? 25.00) }} + R$ {{ number_format((5 * (old('valor_excedente', $configuracao['valor_excedente'] ?? 2.00))), 2, ',', '.') }} (5 × R$ {{ number_format(old('valor_excedente', $configuracao['valor_excedente'] ?? 2.00), 2, ',', '.') }}) = <strong>R$ {{ number_format((old('taxa_fixa', $configuracao['taxa_fixa'] ?? 25.00) + (5 * (old('valor_excedente', $configuracao['valor_excedente'] ?? 2.00)))), 2, ',', '.') }}</strong>
+        ℹ️ Esses valores são usados automaticamente nas novas leituras e faturas.
     </div>
 
     <div class="btn-row">

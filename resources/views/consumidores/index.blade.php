@@ -16,7 +16,6 @@
                 <th>Medidor</th>
                 <th>Endereço</th>
                 <th>Telefone</th>
-                <th>Status</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -28,11 +27,6 @@
                     <td>{{ $consumidor->endereco }}</td>
                     <td>{{ $consumidor->telefone }}</td>
                     <td>
-                        <span class="badge {{ $consumidor->status === 'ativo' ? 'badge-green' : 'badge-gray' }}">
-                            {{ ucfirst($consumidor->status) }}
-                        </span>
-                    </td>
-                    <td>
                         <div style="display: flex; gap: 0.5rem;">
                             <a href="{{ route('consumidores.show', $consumidor->id) }}" class="btn btn-sm btn-ghost">Ver</a>
                             <a href="{{ route('consumidores.edit', $consumidor->id) }}" class="btn btn-sm btn-ghost">Editar</a>
@@ -41,7 +35,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 1.5rem;">
+                    <td colspan="5" style="text-align: center; padding: 1.5rem;">
                         Nenhum consumidor cadastrado. <a href="{{ route('consumidores.create') }}" style="color: #0A3D62; text-decoration: underline;">Cadastre um novo</a>
                     </td>
                 </tr>

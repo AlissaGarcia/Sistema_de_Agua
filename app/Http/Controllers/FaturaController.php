@@ -13,7 +13,12 @@ class FaturaController extends Controller
      */
     public function index()
     {
+        $mesAtual = now()->format('m');
+        $anoAtual = now()->format('Y');
+
         $faturas = Fatura::with('consumidor')
+            ->where('mes', $mesAtual)
+            ->where('ano', $anoAtual)
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -73,7 +78,7 @@ class FaturaController extends Controller
         $fatura = Fatura::findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|in:pendente,pago,vencido',
+            'status' => 'required|in:pendente,pago',
             'data_vencimento' => 'nullable|date',
         ]);
 

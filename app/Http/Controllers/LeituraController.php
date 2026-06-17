@@ -38,7 +38,7 @@ class LeituraController extends Controller
      */
     public function create()
     {
-        $consumidores = Consumidor::where('status', 'ativo')->get();
+        $consumidores = Consumidor::orderBy('nome')->get();
         $configuracao = $this->tarifaService->getConfiguracao();
 
         return view('leituras.create', [
@@ -54,14 +54,22 @@ class LeituraController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'consumidor_id' => 'required|integer|exists:consumidors,id',
+            'consumidor_id' => 'required|integer|exists:consumidores,id',
             'mes' => 'required|digits:2',
             'ano' => 'required|digits:4|integer',
-            'leitura_anterior' => 'required|numeric|min:0',
-            'leitura_atual' => 'required|numeric|min:0|gt:leitura_anterior',
+            'leitura_atual' => 'required|numeric|min:0',
         ], [
-            'leitura_atual.gt' => 'A leitura atual deve ser maior que a leitura anterior.'
+            'leitura_atual.required' => 'Informe o valor atual do medidor.'
         ]);
+
+        $consumidor = Consumidor::findOrFail($validated['consumidor_id']);
+        $leituraAnterior = $consumidor->ultimaLeitura()?->leitura_atual ?? 0;
+
+        if ($validated['leitura_atual'] < $leituraAnterior) {
+            return redirect()->back()
+                ->withErrors(['leitura_atual' => 'A leitura atual não pode ser menor que a leitura anterior.'])
+                ->withInput();
+        }
 
         // Verificar se já existe leitura para este consumidor neste mês/ano
         $leituraExistente = Leitura::where('consumidor_id', $validated['consumidor_id'])
@@ -76,7 +84,7 @@ class LeituraController extends Controller
         }
 
         // Calcular consumo em m³ e litros
-        $consumo_m3 = $validated['leitura_atual'] - $validated['leitura_anterior'];
+        $consumo_m3 = $validated['leitura_atual'] - $leituraAnterior;
         $consumo_litros = (int)($consumo_m3 * 1000);
 
         // Usar TarifaService para calcular tarifa
@@ -87,7 +95,7 @@ class LeituraController extends Controller
             'consumidor_id' => $validated['consumidor_id'],
             'mes' => $validated['mes'],
             'ano' => $validated['ano'],
-            'leitura_anterior' => $validated['leitura_anterior'],
+            'leitura_anterior' => $leituraAnterior,
             'leitura_atual' => $validated['leitura_atual'],
             'consumo_m3' => $consumo_m3,
             'consumo_litros' => $consumo_litros,
@@ -99,7 +107,7 @@ class LeituraController extends Controller
             'leitura_id' => $leitura->id,
             'mes' => $validated['mes'],
             'ano' => $validated['ano'],
-            'leitura_anterior' => $validated['leitura_anterior'],
+            'leitura_anterior' => $leituraAnterior,
             'leitura_atual' => $validated['leitura_atual'],
             'consumo_m3' => $consumo_m3,
             'consumo_litros' => $consumo_litros,
@@ -133,7 +141,7 @@ class LeituraController extends Controller
     public function edit(string $id)
     {
         $leitura = Leitura::findOrFail($id);
-        $consumidores = Consumidor::where('status', 'ativo')->get();
+        $consumidores = Consumidor::orderBy('nome')->get();
 
         return view('leituras.edit', [
             'title' => 'Editar leitura',

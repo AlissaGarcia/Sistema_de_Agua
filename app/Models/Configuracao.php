@@ -9,6 +9,8 @@ class Configuracao extends Model
 {
     use HasFactory;
 
+    protected $table = 'configuracoes_taxa';
+
     protected $fillable = [
         'taxa_fixa',
         'limite_consumo',

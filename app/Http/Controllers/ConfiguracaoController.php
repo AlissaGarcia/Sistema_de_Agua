@@ -20,16 +20,11 @@ class ConfiguracaoController extends Controller
      */
     public function index()
     {
-        // Buscar configuração do banco ou criar com valores padrão
-        $configuracao = Configuracao::first();
-        
-        if (!$configuracao) {
-            $configuracao = Configuracao::create([
-                'taxa_fixa' => 25.00,
-                'limite_consumo' => 10000,
-                'valor_excedente' => 2.00
-            ]);
-        }
+        $configuracao = Configuracao::firstOrCreate([], [
+            'taxa_fixa' => 25.00,
+            'limite_consumo' => 10000,
+            'valor_excedente' => 2.00,
+        ]);
 
         return view('configuracao.index', [
             'title' => 'Configuração de tarifas',
@@ -76,11 +71,9 @@ class ConfiguracaoController extends Controller
     {
         $validated = $request->validate([
             'taxa_fixa' => 'required|numeric|min:0',
-            'limite_consumo' => 'required|integer|min:1',
             'valor_excedente' => 'required|numeric|min:0',
         ], [
             'taxa_fixa.required' => 'A taxa fixa é obrigatória.',
-            'limite_consumo.required' => 'O limite de consumo é obrigatório.',
             'valor_excedente.required' => 'O valor do excedente é obrigatório.',
         ]);
 
@@ -97,7 +90,7 @@ class ConfiguracaoController extends Controller
         if ($configuracao) {
             $configuracao->update($validated);
         } else {
-            $configuracao = Configuracao::create($validated);
+            $configuracao = Configuracao::create($validated + ['limite_consumo' => 10000]);
         }
 
         return redirect()->route('configuracao.index')

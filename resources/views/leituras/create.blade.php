@@ -18,7 +18,7 @@
         >
             <option value="">Selecione um consumidor</option>
             @foreach($consumidores as $consumidor)
-                <option value="{{ $consumidor->id }}" data-leitura="{{ $consumidor->ultimaLeitura()?->leitura_atual ?? $consumidor->leitura_inicial }}" {{ old('consumidor_id') == $consumidor->id ? 'selected' : '' }}>
+                <option value="{{ $consumidor->id }}" data-leitura-anterior="{{ $consumidor->ultimaLeitura()?->leitura_atual ?? 0 }}" {{ old('consumidor_id') == $consumidor->id ? 'selected' : '' }}>
                     {{ $consumidor->nome }} — Medidor {{ $consumidor->numero_medidor }}
                 </option>
             @endforeach
@@ -66,23 +66,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Leitura anterior (m³)</label>
-        <input 
-            type="number" 
-            id="leitura-anterior"
-            name="leitura_anterior" 
-            class="form-input @error('leitura_anterior') is-invalid @enderror" 
-            value="{{ old('leitura_anterior') }}"
-            step="0.001" 
-            required
-        >
-        @error('leitura_anterior')
-            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-        @enderror
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Leitura atual (m³)</label>
+        <label class="form-label">Valor atual do medidor (m³)</label>
         <input 
             type="number" 
             id="leitura-atual"
@@ -90,6 +74,7 @@
             class="form-input @error('leitura_atual') is-invalid @enderror" 
             value="{{ old('leitura_atual') }}"
             step="0.001" 
+            min="0"
             required
         >
         @error('leitura_atual')
@@ -99,8 +84,9 @@
 
     <div class="alert-box alert-info">
         ℹ️
-        <div id="consumo-resultado">
-            Digite as leituras anterior e atual para calcular o consumo e valor a pagar.
+        <div id="leitura-anterior-resultado">Selecione um consumidor para ver a leitura anterior.</div>
+        <div id="consumo-resultado" style="margin-top: 0.5rem;">
+            Digite o valor atual do medidor para calcular o consumo e valor a pagar.
         </div>
     </div>
 
@@ -114,63 +100,72 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const consumidorSelect = document.getElementById('consumidor-select');
-        const leituraAnterior = document.getElementById('leitura-anterior');
         const leituraAtual = document.getElementById('leitura-atual');
+        const leituraAnteriorResultado = document.getElementById('leitura-anterior-resultado');
+        const consumoResultado = document.getElementById('consumo-resultado');
+        const taxaFixa = {{ $configuracao['taxa_fixa'] ?? 25 }};
+        const limiteConsumo = {{ $configuracao['limite_consumo'] ?? 10000 }};
+        const valorExcedente = {{ $configuracao['valor_excedente'] ?? 2 }};
         
-        // Preencher leitura anterior quando consumidor é selecionado
-        if (consumidorSelect) {
-            consumidorSelect.addEventListener('change', function() {
-                const selected = this.options[this.selectedIndex];
-                if (selected && selected.getAttribute('data-leitura')) {
-                    leituraAnterior.value = selected.getAttribute('data-leitura');
-                    calcularConsumo();
-                }
-            });
-            
-            // Disparar change ao carregar se houver seleção
-            if (consumidorSelect.value) {
-                consumidorSelect.dispatchEvent(new Event('change'));
+        function obterLeituraAnterior() {
+            if (!consumidorSelect || !consumidorSelect.value) {
+                return null;
             }
+
+            const selected = consumidorSelect.options[consumidorSelect.selectedIndex];
+            const leituraAnterior = parseFloat(selected.getAttribute('data-leitura-anterior') || '0');
+
+            return Number.isFinite(leituraAnterior) ? leituraAnterior : 0;
         }
         
         function calcularConsumo() {
-            const anterior = parseFloat(leituraAnterior.value || 0);
             const atual = parseFloat(leituraAtual.value || 0);
-            
-            if (anterior && atual && atual > anterior) {
+
+            const anterior = obterLeituraAnterior();
+
+            if (anterior === null) {
+                leituraAnteriorResultado.textContent = 'Selecione um consumidor para ver a leitura anterior.';
+                consumoResultado.textContent = 'Digite o valor atual do medidor para calcular o consumo e valor a pagar.';
+                return;
+            }
+
+            leituraAnteriorResultado.innerHTML = `Leitura anterior: <strong>${anterior.toFixed(3)} m³</strong>`;
+
+            if (Number.isFinite(atual) && atual >= anterior) {
                 const consumoM3 = atual - anterior;
-                const consumoL = consumoM3 * 1000;
-                
-                const taxaFixa = {{ $configuracao['taxa_fixa'] ?? 25 }};
-                const limiteConsumo = {{ $configuracao['limite_consumo'] ?? 10000 }};
-                const valorExcedente = {{ $configuracao['valor_excedente'] ?? 2 }};
-                
                 let total = taxaFixa;
                 let excedente = 0;
-                
+
+                const consumoL = consumoM3 * 1000;
+
                 if (consumoL > limiteConsumo) {
                     const unidadesExcedentes = (consumoL - limiteConsumo) / 1000;
                     excedente = unidadesExcedentes * valorExcedente;
                     total = taxaFixa + excedente;
                 }
-                
-                const resultadoEl = document.getElementById('consumo-resultado');
-                resultadoEl.innerHTML = `
+
+                consumoResultado.innerHTML = `
                     <strong>Consumo: ${consumoM3.toFixed(3)} m³ (${consumoL.toLocaleString('pt-BR')} litros)</strong><br>
-                    ${consumoL > limiteConsumo ? 
-                        `Acima do limite de ${(limiteConsumo/1000).toFixed(1)} m³ → R$ ${taxaFixa.toFixed(2)} (taxa fixa) + R$ ${excedente.toFixed(2)} (excedente) = <strong>R$ ${total.toFixed(2)}</strong>` 
-                        : 
-                        `Dentro do limite de ${(limiteConsumo/1000).toFixed(1)} m³ → <strong>R$ ${total.toFixed(2)}</strong> (taxa fixa)`
+                    ${consumoL > limiteConsumo ?
+                        `Valor calculado: R$ ${total.toFixed(2)} (taxa fixa R$ ${taxaFixa.toFixed(2)} + excedente R$ ${excedente.toFixed(2)})`
+                        :
+                        `Valor calculado: R$ ${total.toFixed(2)} (taxa fixa)`
                     }
                 `;
-            } else if (anterior && atual && atual <= anterior) {
-                const resultadoEl = document.getElementById('consumo-resultado');
-                resultadoEl.innerHTML = '<span style="color: #C0392B;">⚠️ A leitura atual deve ser maior que a leitura anterior</span>';
+            } else if (Number.isFinite(atual) && atual < anterior) {
+                consumoResultado.innerHTML = '<span style="color: #C0392B;">A leitura atual não pode ser menor que a leitura anterior.</span>';
+            } else {
+                consumoResultado.textContent = 'Digite o valor atual do medidor para calcular o consumo e valor a pagar.';
             }
         }
-        
-        if (leituraAnterior) leituraAnterior.addEventListener('change', calcularConsumo);
-        if (leituraAnterior) leituraAnterior.addEventListener('input', calcularConsumo);
+
+        if (consumidorSelect) {
+            consumidorSelect.addEventListener('change', calcularConsumo);
+            if (consumidorSelect.value) {
+                calcularConsumo();
+            }
+        }
+
         if (leituraAtual) leituraAtual.addEventListener('change', calcularConsumo);
         if (leituraAtual) leituraAtual.addEventListener('input', calcularConsumo);
     });

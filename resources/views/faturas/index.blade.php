@@ -22,6 +22,16 @@
 </div>
 
 @forelse($faturas as $fatura)
+    @php
+        $telefone = preg_replace('/\D+/', '', $fatura->consumidor->telefone ?? '');
+        $mensagem = "Olá, {$fatura->consumidor->nome}! Segue o consumo de {$fatura->getPeriodo()}:\n" .
+            "Medidor: {$fatura->consumidor->numero_medidor}\n" .
+            "Leitura anterior: " . number_format($fatura->leitura_anterior, 3, ',', '.') . " m3 → Leitura atual: " . number_format($fatura->leitura_atual, 3, ',', '.') . " m3\n" .
+            "Consumo: " . number_format($fatura->consumo_m3, 3, ',', '.') . " m3 (" . number_format($fatura->consumo_litros, 0, ',', '.') . " litros)\n" .
+            "Valor da fatura: R$ " . number_format($fatura->total, 2, ',', '.') . "\n" .
+            "Att, Associação Comunitária";
+        $whatsappLink = $telefone ? 'https://wa.me/55' . $telefone . '?text=' . rawurlencode($mensagem) : null;
+    @endphp
     <div class="fatura-card">
         <div class="fatura-header">
             <div>
@@ -77,6 +87,9 @@
 
         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
             <a href="{{ route('faturas.show', $fatura->id) }}" class="btn btn-sm btn-ghost">Ver</a>
+            @if($whatsappLink)
+                <a href="{{ $whatsappLink }}" class="btn btn-sm btn-primary" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            @endif
             @if($fatura->status === 'pendente')
                 <form action="{{ route('faturas.marcar-pago', $fatura->id) }}" method="POST" style="display: inline;">
                     @csrf

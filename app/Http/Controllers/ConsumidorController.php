@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Models\Consumidor;
 
 class ConsumidorController extends Controller
@@ -38,9 +39,8 @@ class ConsumidorController extends Controller
         $validated = $request->validate([
             'nome' => 'required|string|max:255',
             'endereco' => 'required|string|max:255',
-            'numero_medidor' => 'required|string|unique:consumidors',
+            'numero_medidor' => ['required', 'string', Rule::unique('consumidores', 'numero_medidor')],
             'telefone' => 'required|string|max:20',
-            'leitura_inicial' => 'required|numeric|min:0',
         ], [
             'numero_medidor.unique' => 'Este número de medidor já está cadastrado.'
         ]);
@@ -87,8 +87,10 @@ class ConsumidorController extends Controller
         $validated = $request->validate([
             'nome' => 'required|string|max:255',
             'endereco' => 'required|string|max:255',
+            'numero_medidor' => ['required', 'string', Rule::unique('consumidores', 'numero_medidor')->ignore($consumidor->id)],
             'telefone' => 'required|string|max:20',
-            'status' => 'required|in:ativo,inativo,suspenso',
+        ], [
+            'numero_medidor.unique' => 'Este número de medidor já está cadastrado.'
         ]);
 
         $consumidor->update($validated);

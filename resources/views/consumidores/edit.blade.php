@@ -42,13 +42,13 @@
         <input 
             type="text" 
             name="numero_medidor" 
-            class="form-input"
-            value="{{ $consumidor->numero_medidor }}"
-            disabled
+            class="form-input @error('numero_medidor') is-invalid @enderror"
+            value="{{ old('numero_medidor', $consumidor->numero_medidor) }}"
+            required
         >
-        <small style="color: var(--color-text-secondary); margin-top: 4px; display: block;">
-            O número do medidor não pode ser alterado.
-        </small>
+        @error('numero_medidor')
+            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
+        @enderror
     </div>
 
     <div class="form-group">
@@ -61,22 +61,6 @@
             required
         >
         @error('telefone')
-            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-        @enderror
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Status</label>
-        <select 
-            name="status" 
-            class="form-input @error('status') is-invalid @enderror" 
-            required
-        >
-            <option value="ativo" {{ old('status', $consumidor->status) === 'ativo' ? 'selected' : '' }}>Ativo</option>
-            <option value="inativo" {{ old('status', $consumidor->status) === 'inativo' ? 'selected' : '' }}>Inativo</option>
-            <option value="suspenso" {{ old('status', $consumidor->status) === 'suspenso' ? 'selected' : '' }}>Suspenso</option>
-        </select>
-        @error('status')
             <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
         @enderror
     </div>

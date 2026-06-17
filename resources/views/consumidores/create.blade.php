@@ -65,21 +65,6 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <label class="form-label">Leitura inicial do medidor (m³)</label>
-        <input 
-            type="number" 
-            name="leitura_inicial" 
-            class="form-input @error('leitura_inicial') is-invalid @enderror" 
-            value="{{ old('leitura_inicial') }}"
-            step="0.01" 
-            required
-        >
-        @error('leitura_inicial')
-            <span style="color: #C0392B; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-        @enderror
-    </div>
-
     <div class="btn-row">
         <a href="{{ route('consumidores.index') }}" class="btn">Cancelar</a>
         <button type="submit" class="btn btn-primary">Salvar consumidor</button>
