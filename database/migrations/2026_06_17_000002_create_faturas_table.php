@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('faturas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('leitura_id')->nullable()->constrained('leituras')->nullOnDelete();
-            $table->foreignId('consumidor_id')->constrained('consumidores')->cascadeOnDelete();
+            $table->foreignId('leitura_id')->nullable()->constrained('leituras')->restrictOnDelete();
+            $table->foreignId('consumidor_id')->constrained('consumidores')->restrictOnDelete();
             $table->unsignedInteger('mes_referencia')->nullable();
             $table->unsignedInteger('ano_referencia')->nullable();
             $table->string('mes', 2)->nullable();
@@ -31,6 +31,7 @@ return new class extends Migration
             $table->date('data_vencimento')->nullable();
             $table->date('data_pagamento')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['consumidor_id', 'mes', 'ano']);
             $table->unique(['consumidor_id', 'mes_referencia', 'ano_referencia'], 'faturas_consumidor_mes_ano_ref_unique');

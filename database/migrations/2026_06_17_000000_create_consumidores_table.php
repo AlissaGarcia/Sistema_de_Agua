@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('numero_medidor')->unique();
             $table->string('telefone');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

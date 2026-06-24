@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('leituras', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('consumidor_id')->constrained('consumidores')->cascadeOnDelete();
+            $table->foreignId('consumidor_id')->constrained('consumidores')->restrictOnDelete();
             $table->unsignedInteger('mes_referencia')->nullable();
             $table->unsignedInteger('ano_referencia')->nullable();
             $table->string('mes', 2)->nullable();
@@ -23,6 +23,7 @@ return new class extends Migration
             $table->decimal('consumo_m3', 10, 3);
             $table->integer('consumo_litros')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['consumidor_id', 'mes', 'ano']);
             $table->unique(['consumidor_id', 'mes_referencia', 'ano_referencia'], 'leituras_consumidor_mes_ano_ref_unique');
