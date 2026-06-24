@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreFaturaRequest;
+use App\Http\Requests\UpdateFaturaRequest;
 use App\Models\Fatura;
 use App\Models\Consumidor;
 
@@ -39,7 +40,7 @@ class FaturaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreFaturaRequest $request)
     {
         return redirect()->route('faturas.index');
     }
@@ -73,14 +74,11 @@ class FaturaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateFaturaRequest $request, string $id)
     {
         $fatura = Fatura::findOrFail($id);
 
-        $validated = $request->validate([
-            'status' => 'required|in:pendente,pago',
-            'data_vencimento' => 'nullable|date',
-        ]);
+        $validated = $request->validatedData();
 
         $fatura->update($validated);
 

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreLeituraRequest;
+use App\Http\Requests\UpdateLeituraRequest;
 use App\Models\Consumidor;
 use App\Models\Leitura;
 use App\Models\Fatura;
@@ -51,16 +52,9 @@ class LeituraController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreLeituraRequest $request)
     {
-        $validated = $request->validate([
-            'consumidor_id' => 'required|integer|exists:consumidores,id',
-            'mes' => 'required|digits:2',
-            'ano' => 'required|digits:4|integer',
-            'leitura_atual' => 'required|numeric|min:0',
-        ], [
-            'leitura_atual.required' => 'Informe o valor atual do medidor.'
-        ]);
+        $validated = $request->validatedData();
 
         $consumidor = Consumidor::findOrFail($validated['consumidor_id']);
         $leituraAnterior = $consumidor->ultimaLeitura()?->leitura_atual ?? 0;
@@ -153,14 +147,11 @@ class LeituraController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateLeituraRequest $request, string $id)
     {
         $leitura = Leitura::findOrFail($id);
 
-        $validated = $request->validate([
-            'leitura_anterior' => 'required|numeric|min:0',
-            'leitura_atual' => 'required|numeric|min:0|gt:leitura_anterior',
-        ]);
+        $validated = $request->validatedData();
 
         $consumo_m3 = $validated['leitura_atual'] - $validated['leitura_anterior'];
         $consumo_litros = (int)($consumo_m3 * 1000);

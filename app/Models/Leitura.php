@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Leitura extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'consumidor_id',
@@ -35,7 +36,7 @@ class Leitura extends Model
      */
     public function consumidor(): BelongsTo
     {
-        return $this->belongsTo(Consumidor::class);
+        return $this->belongsTo(Consumidor::class)->withTrashed();
     }
 
     /**

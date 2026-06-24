@@ -25,21 +25,32 @@
                 <div class="logo-sub">Associação Comunitária</div>
             </div>
 
-            <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                📊 Dashboard
-            </a>
-            <a href="{{ route('consumidores.index') }}" class="sidebar-item {{ request()->routeIs('consumidores.*') ? 'active' : '' }}">
-                👥 Consumidores
-            </a>
-            <a href="{{ route('leituras.create') }}" class="sidebar-item {{ request()->routeIs('leituras.*') ? 'active' : '' }}">
-                📝 Leituras
-            </a>
-            <a href="{{ route('faturas.index') }}" class="sidebar-item {{ request()->routeIs('faturas.*') ? 'active' : '' }}">
-                💳 Faturas
-            </a>
-            <a href="{{ route('configuracao.index') }}" class="sidebar-item {{ request()->routeIs('configuracao.*') ? 'active' : '' }}">
-                ⚙️ Configuração
-            </a>
+            @php $currentUser = auth()->user(); @endphp
+
+            @if ($currentUser?->role === 'gestor')
+                <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    📊 Dashboard
+                </a>
+                <a href="{{ route('consumidores.index') }}" class="sidebar-item {{ request()->routeIs('consumidores.*') ? 'active' : '' }}">
+                    👥 Consumidores
+                </a>
+                <a href="{{ route('leituras.index') }}" class="sidebar-item {{ request()->routeIs('leituras.*') ? 'active' : '' }}">
+                    📝 Leituras
+                </a>
+                <a href="{{ route('faturas.index') }}" class="sidebar-item {{ request()->routeIs('faturas.*') ? 'active' : '' }}">
+                    💳 Faturas
+                </a>
+                <a href="{{ route('configuracao.index') }}" class="sidebar-item {{ request()->routeIs('configuracao.*') ? 'active' : '' }}">
+                    ⚙️ Configuração
+                </a>
+            @elseif ($currentUser?->role === 'leiturista')
+                <a href="{{ route('leiturista.dashboard') }}" class="sidebar-item {{ request()->routeIs('leiturista.dashboard') ? 'active' : '' }}">
+                    🧭 Leiturista
+                </a>
+                <a href="{{ route('leituras.index') }}" class="sidebar-item {{ request()->routeIs('leituras.*') ? 'active' : '' }}">
+                    📝 Leituras
+                </a>
+            @endif
 
             <div style="padding: 1rem 1rem; margin-top: auto; border-top: 0.5px solid rgba(255,255,255,0.12);">
                 <form action="{{ route('logout') }}" method="POST" style="display: inline;">

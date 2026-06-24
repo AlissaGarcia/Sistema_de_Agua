@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreConfiguracaoRequest;
 use App\Models\Configuracao;
 use App\Services\TarifaService;
 
@@ -43,7 +43,7 @@ class ConfiguracaoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreConfiguracaoRequest $request)
     {
         return redirect()->route('configuracao.index');
     }
@@ -67,15 +67,9 @@ class ConfiguracaoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id = null)
+    public function update(StoreConfiguracaoRequest $request, string $id = null)
     {
-        $validated = $request->validate([
-            'taxa_fixa' => 'required|numeric|min:0',
-            'valor_excedente' => 'required|numeric|min:0',
-        ], [
-            'taxa_fixa.required' => 'A taxa fixa é obrigatória.',
-            'valor_excedente.required' => 'O valor do excedente é obrigatório.',
-        ]);
+        $validated = $request->validatedData();
 
         // Validar configuração com TarifaService
         $erros = $this->tarifaService->validarConfiguracao($validated);

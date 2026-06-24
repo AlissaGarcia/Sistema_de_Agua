@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Consumidor;
 use App\Models\Leitura;
 use App\Models\Fatura;

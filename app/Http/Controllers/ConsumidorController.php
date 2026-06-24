@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreConsumidorRequest;
+use App\Http\Requests\UpdateConsumidorRequest;
 use Illuminate\Validation\Rule;
 use App\Models\Consumidor;
 
@@ -34,16 +35,9 @@ class ConsumidorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreConsumidorRequest $request)
     {
-        $validated = $request->validate([
-            'nome' => 'required|string|max:255',
-            'endereco' => 'required|string|max:255',
-            'numero_medidor' => ['required', 'string', Rule::unique('consumidores', 'numero_medidor')],
-            'telefone' => 'required|string|max:20',
-        ], [
-            'numero_medidor.unique' => 'Este número de medidor já está cadastrado.'
-        ]);
+        $validated = $request->validatedData();
 
         $consumidor = Consumidor::create($validated);
 
@@ -80,18 +74,11 @@ class ConsumidorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateConsumidorRequest $request, string $id)
     {
         $consumidor = Consumidor::findOrFail($id);
 
-        $validated = $request->validate([
-            'nome' => 'required|string|max:255',
-            'endereco' => 'required|string|max:255',
-            'numero_medidor' => ['required', 'string', Rule::unique('consumidores', 'numero_medidor')->ignore($consumidor->id)],
-            'telefone' => 'required|string|max:20',
-        ], [
-            'numero_medidor.unique' => 'Este número de medidor já está cadastrado.'
-        ]);
+        $validated = $request->validatedData();
 
         $consumidor->update($validated);
 
