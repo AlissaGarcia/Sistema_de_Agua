@@ -35,6 +35,24 @@ class LeituraValidationTest extends TestCase
         $this->assertFalse($validator->fails(), 'A validação deve aceitar valores numéricos válidos mesmo quando a leitura atual for menor que a anterior.');
     }
 
+    public function test_store_leitura_request_rejects_negative_leitura_atual(): void
+    {
+        Consumidor::factory()->create(['id' => 1]);
+
+        $data = [
+            'consumidor_id' => 1,
+            'mes' => '08',
+            'ano' => '2026',
+            'leitura_anterior' => 1000,
+            'leitura_atual' => -100,
+        ];
+
+        $validator = Validator::make($data, (new StoreLeituraRequest())->rules());
+
+        $this->assertTrue($validator->fails(), 'A validação deve rejeitar leitura_atual negativa.');
+        $this->assertArrayHasKey('leitura_atual', $validator->failed());
+    }
+
     public function test_leitura_model_checks_if_current_reading_is_consistent_with_previous_one(): void
     {
         $leituraValida = new \App\Models\Leitura([

@@ -22,7 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
             \App\Http\Middleware\AuditMiddleware::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
 
         $middleware->alias([
