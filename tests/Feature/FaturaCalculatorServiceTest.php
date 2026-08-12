@@ -39,4 +39,26 @@ class FaturaCalculatorServiceTest extends TestCase
         $this->assertSame(25.0, $resultado['taxa_fixa']);
         $this->assertSame(35.0, $resultado['valor_excedente']);
     }
+
+    public function test_calcula_valor_da_fatura_com_consumo_zero(): void
+    {
+        $service = new FaturaCalculatorService();
+
+        $resultado = $service->calcular(0);
+
+        $this->assertSame(25.0, $resultado['total']);
+        $this->assertSame(25.0, $resultado['taxa_fixa']);
+        $this->assertSame(0.0, $resultado['valor_excedente']);
+    }
+
+    public function test_calcula_valor_da_fatura_em_limite_de_20_m3(): void
+    {
+        $service = new FaturaCalculatorService();
+
+        $resultado = $service->calcular(20);
+
+        $this->assertSame(45.0, $resultado['total']);
+        $this->assertSame(25.0, $resultado['taxa_fixa']);
+        $this->assertSame(20.0, $resultado['valor_excedente']);
+    }
 }
