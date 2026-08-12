@@ -34,4 +34,20 @@ class LeituraValidationTest extends TestCase
 
         $this->assertFalse($validator->fails(), 'A validação deve aceitar valores numéricos válidos mesmo quando a leitura atual for menor que a anterior.');
     }
+
+    public function test_leitura_model_checks_if_current_reading_is_consistent_with_previous_one(): void
+    {
+        $leituraValida = new \App\Models\Leitura([
+            'leitura_anterior' => 5000,
+            'leitura_atual' => 6000,
+        ]);
+
+        $leituraInvalida = new \App\Models\Leitura([
+            'leitura_anterior' => 5000,
+            'leitura_atual' => 4500,
+        ]);
+
+        $this->assertTrue($leituraValida->leituraValida());
+        $this->assertFalse($leituraInvalida->leituraValida());
+    }
 }

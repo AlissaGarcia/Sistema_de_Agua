@@ -113,3 +113,65 @@ A atividade pede atenção especial: não fornecer uma solução completa pronta
 
 ### 11) Conclusão
 A validação com Form Request é uma boa prática em Laravel porque melhora a organização do código e reforça a integridade dos dados recebidos. No caso de leitura, é fundamental validar `consumidor_id`, `leitura_anterior` e `leitura_atual`, mas sem bloquear automaticamente um cenário em que a leitura atual seja menor que a anterior, desde que ambos sejam numéricos e válidos individualmente.
+
+## Parte 3 — Model Leitura e comportamento relacionado
+
+### 1) Qual entidade foi escolhida?
+Escolhemos a entidade `Leitura` porque ela representa o registro central do consumo de água e guarda os dados diretamente relacionados ao medidor e ao consumo calculado.
+
+### 2) O que foi analisado no Model?
+No Model `Leitura`, verificamos:
+
+- `$fillable`: lista dos campos que podem ser preenchidos em massa;
+- `$casts`: conversão de tipos para garantir consistência de dados;
+- relacionamentos: `consumidor()` e `fatura()`;
+- `SoftDeletes`: uso do delete lógico da entidade;
+- comportamentos: cálculo de consumo e verificação de consistência da leitura.
+
+### 3) Quais são os principais pontos do Model `Leitura`?
+O model possui:
+
+- `fillable` com `consumidor_id`, `mes`, `ano`, `leitura_anterior`, `leitura_atual`, `consumo_m3` e `consumo_litros`;
+- `casts` para transformar campos numéricos e datas em tipos específicos;
+- relacionamento com `Consumidor` via `belongsTo()`;
+- relacionamento com `Fatura` via `hasOne()`;
+- `SoftDeletes`, permitindo que a leitura seja removida logicamente sem exclusão física;
+- comportamento `calcularConsumo()` para gerar o consumo em litros;
+- comportamento `leituraValida()` para verificar se a leitura atual é consistente com a anterior.
+
+### 4) Como ficou o comportamento `leituraValida()`?
+Foi adicionado ao model o método:
+
+```php
+public function leituraValida(): bool
+{
+    return $this->leitura_atual >= $this->leitura_anterior;
+}
+```
+
+Esse método verifica se a leitura atual não é menor que a leitura anterior, o que faz sentido para a regra de consistência do registro de medição.
+
+### 5) Por que essa regra é considerada comportamento do Model `Leitura`?
+Porque ela está diretamente ligada ao domínio da entidade. A leitura é um objeto que conhece seus próprios dados: leitura anterior, leitura atual e o conceito de consistência entre ambos.
+
+A regra faz parte da responsabilidade da entidade porque:
+
+- pertence ao próprio conceito de leitura do medidor;
+- depende apenas de atributos internos da própria classe;
+- representa uma regra de integridade do registro;
+- mantém a lógica próxima aos dados, em vez de espalhá-la no controller ou no request.
+
+Em outras palavras, o Model `Leitura` é o lugar natural para encapsular a verificação de coerência entre os valores do medidor, pois essa regra é intrínseca ao próprio objeto.
+
+### 6) Qual a diferença entre essa regra e a validação do Form Request?
+A validação do request trata apenas se os dados recebidos estão no formato e na estrutura esperados. Já a regra `leitura_atual >= leitura_anterior` é uma regra de consistência do domínio e, por isso, pode ser encapsulada como comportamento do model.
+
+Essa separação é importante:
+
+- request: valida formato, tipo e existência;
+- model: encapsula regras relacionadas ao objeto de negócio.
+
+### 7) Conclusão da parte 3
+A implementação do comportamento no Model `Leitura` deixa o código mais organizado, coeso e reutilizável. A entidade passa a responder perguntas sobre si mesma, como: “a leitura atual é consistente com a leitura anterior?”
+
+Isso respeita os princípios de encapsulamento e mantém a lógica de negócio mais próxima da estrutura de dados que a representa.

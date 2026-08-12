@@ -71,6 +71,14 @@ class Leitura extends Model
     }
 
     /**
+     * Verifica se a leitura atual é consistente com a leitura anterior.
+     */
+    public function leituraValida(): bool
+    {
+        return $this->leitura_atual >= $this->leitura_anterior;
+    }
+
+    /**
      * Calcular consumo em litros
      */
     public function calcularConsumo(): int
