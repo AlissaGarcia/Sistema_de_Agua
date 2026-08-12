@@ -19,7 +19,7 @@ class LeituraStoreTest extends TestCase
         $this->withoutMiddleware(PreventRequestForgery::class);
     }
 
-    public function test_store_valid_leitura_creates_leitura_and_fatura(): void
+    public function test_teste_1_dados_validos_registra_leitura_e_fatura(): void
     {
         $user = User::factory()->create(['role' => 'leiturista']);
         $consumidor = Consumidor::factory()->create();
@@ -56,7 +56,7 @@ class LeituraStoreTest extends TestCase
         ]);
     }
 
-    public function test_store_negative_leitura_atual_returns_validation_error(): void
+    public function test_teste_2_dados_invalidos_leitura_atual_negativa_rejeitada(): void
     {
         $user = User::factory()->create(['role' => 'leiturista']);
         $consumidor = Consumidor::factory()->create();
