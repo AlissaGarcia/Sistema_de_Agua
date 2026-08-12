@@ -132,7 +132,34 @@ Arquivo principal: routes/web.php
 | /leiturista | GET | LeituristaController@index | Painel do leiturista |
 | /logout | POST | AuthController@logout | Realiza logout |
 
-## 5. Observações finais
+## 5. Refatoração de responsabilidade no Controller de leitura
+
+O controller responsável pelo registro de leituras, em [app/Http/Controllers/LeituraController.php](app/Http/Controllers/LeituraController.php), realizava, no método `store()`, várias ações ao mesmo tempo:
+
+- validação de dados via Form Request;
+- busca de dados do consumidor;
+- checagem de regra de negócio;
+- cálculo de consumo;
+- persistência de leitura e fatura;
+- resposta HTTP com redirect.
+
+Essa mistura deixava o controller com responsabilidade excessiva e dificultava manutenção e entendimento do fluxo.
+
+### Antes:
+Controller fazia validação, regra de negócio, cálculo, persistência e resposta HTTP no mesmo método.
+
+### Depois:
+A responsabilidade foi transferida para o Model `Leitura`, no comportamento `leituraValida()`, e para o Form Request, em [app/Http/Requests/StoreLeituraRequest.php](app/Http/Requests/StoreLeituraRequest.php), que ficou responsável pela validação de formato e integridade dos dados.
+
+### Motivo:
+Essa separação é importante porque:
+
+- o request deve validar entrada do usuário e garantir que o dado está no formato correto;
+- o model deve encapsular comportamento relacionado ao domínio da entidade, como verificar consistência de leitura;
+- o controller deve apenas coordenar a requisição e delegar responsabilidades para camadas adequadas;
+- o cálculo e a persistência continuam centralizados em regras de negócio e no modelo, deixando a camada de apresentação mais limpa e focada.
+
+## 6. Observações finais
 
 O projeto está organizado em um padrão MVC claro, com separação de responsabilidades:
 
