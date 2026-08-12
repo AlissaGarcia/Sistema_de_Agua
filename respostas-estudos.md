@@ -175,3 +175,54 @@ Essa separação é importante:
 A implementação do comportamento no Model `Leitura` deixa o código mais organizado, coeso e reutilizável. A entidade passa a responder perguntas sobre si mesma, como: “a leitura atual é consistente com a leitura anterior?”
 
 Isso respeita os princípios de encapsulamento e mantém a lógica de negócio mais próxima da estrutura de dados que a representa.
+
+## Parte 4 — Análise do FaturaCalculatorService
+
+### 1) Qual é a responsabilidade do service?
+O `FaturaCalculatorService` é responsável por calcular o valor da fatura de acordo com a política de cobrança da associação.
+
+Sua função é concentrar a regra de cálculo da conta em um único ponto, evitando que essa lógica fique espalhada no controller ou diretamente na view.
+
+### 2) Qual é a regra atual implementada?
+A regra implementada é:
+
+- até 10 m³: taxa fixa de R$ 25,00;
+- acima de 10 m³ até 20 m³: R$ 25,00 + R$ 2,00 por m³ excedente;
+- acima de 20 m³: R$ 25,00 + R$ 2,00 por m³ entre 10 e 20 + R$ 3,00 por m³ acima de 20.
+
+### 3) Como o cálculo foi estruturado?
+O método `calcular(float $consumoM3): array` verifica em qual faixa o consumo se encontra e aplica a regra apropriada.
+
+O retorno do método inclui:
+
+- `taxa_fixa`
+- `valor_excedente`
+- `total`
+- `consumo_m3`
+
+Isso facilita a utilização do resultado em outros pontos do sistema, como a geração da fatura no banco ou a apresentação na interface.
+
+### 4) Por que esse service é uma boa escolha?
+Porque ele centraliza a regra de negócio em um serviço dedicado, deixando o controller responsável apenas por receber a requisição, buscar os dados necessários e delegar o cálculo.
+
+Esse padrão traz vantagens como:
+
+- melhor organização;
+- facilidade de manutenção;
+- reutilização da regra em vários pontos do sistema;
+- menor acoplamento entre controller e regra de faturamento.
+
+### 5) Qual é a diferença entre esse service e validação?
+O `FaturaCalculatorService` não valida se o dado foi informado corretamente. Sua função é calcular o valor total de acordo com a regra de negócio.
+
+Já a validação continua sendo responsabilidade do `Form Request`, que garante que a entrada do usuário seja coerente e correta.
+
+### 6) Exemplos da regra
+Os exemplos da regra foram implementados e testados:
+
+- 8 m³ → total R$ 25,00
+- 15 m³ → total R$ 35,00
+- 25 m³ → total R$ 60,00
+
+### 7) Conclusão
+O `FaturaCalculatorService` é um exemplo claro de como a regra de negócio deve ser deslocada para um service. Isso mantém a arquitetura mais limpa, com responsabilidades bem separadas, e evita que o controller acumule regras de cálculo e de negócio.
