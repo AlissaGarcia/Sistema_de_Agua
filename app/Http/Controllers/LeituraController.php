@@ -8,15 +8,18 @@ use App\Models\Consumidor;
 use App\Models\Leitura;
 use App\Models\Fatura;
 use App\Models\Configuracao;
+use App\Services\FaturaCalculatorService;
 use App\Services\TarifaService;
 
 class LeituraController extends Controller
 {
     protected TarifaService $tarifaService;
+    protected FaturaCalculatorService $faturaCalculatorService;
 
     public function __construct()
     {
         $this->tarifaService = new TarifaService();
+        $this->faturaCalculatorService = new FaturaCalculatorService();
     }
 
     /**
@@ -81,8 +84,8 @@ class LeituraController extends Controller
         $consumo_m3 = $validated['leitura_atual'] - $leituraAnterior;
         $consumo_litros = (int)($consumo_m3 * 1000);
 
-        // Usar TarifaService para calcular tarifa
-        $calculo = $this->tarifaService->calcularTarifa($consumo_litros);
+        // Calcular valor da fatura conforme a nova política de faixas
+        $calculo = $this->faturaCalculatorService->calcular($consumo_m3);
 
         // Criar leitura
         $leitura = Leitura::create([
@@ -106,7 +109,7 @@ class LeituraController extends Controller
             'consumo_m3' => $consumo_m3,
             'consumo_litros' => $consumo_litros,
             'taxa_fixa' => $calculo['taxa_fixa'],
-            'taxa_excedente' => $calculo['taxa_excedente'],
+            'taxa_excedente' => $calculo['valor_excedente'],
             'total' => $calculo['total'],
             'status' => 'pendente',
             'data_vencimento' => now()->addDays(10),
