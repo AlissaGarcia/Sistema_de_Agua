@@ -159,7 +159,22 @@ Essa separação é importante porque:
 - o controller deve apenas coordenar a requisição e delegar responsabilidades para camadas adequadas;
 - o cálculo e a persistência continuam centralizados em regras de negócio e no modelo, deixando a camada de apresentação mais limpa e focada.
 
-## 6. Observações finais
+## 6. Uso de IA
+
+Ferramenta utilizada:
+- GitHub Copilot
+
+Objetivo:
+- Auxiliar na elaboração dos testes automatizados e na forma de estruturar as validações e serviços do Laravel.
+
+Prompt utilizado:
+- "Explique como criar um teste de serviço em Laravel para validar o cálculo de uma fatura e como usar Form Requests para validar leituras."
+
+Como a resposta foi utilizada:
+- A sugestão do Copilot orientou a criação de novos casos de teste para o `FaturaCalculatorService` e a forma de organizar validações no `StoreLeituraRequest`.
+- O código foi adaptado ao projeto e testado localmente.
+
+## 7. Observações finais
 
 O projeto está organizado em um padrão MVC claro, com separação de responsabilidades:
 
