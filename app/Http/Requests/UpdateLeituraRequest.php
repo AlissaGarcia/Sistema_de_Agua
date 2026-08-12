@@ -15,7 +15,7 @@ class UpdateLeituraRequest extends FormRequest
     {
         return [
             'leitura_anterior' => 'required|numeric|min:0',
-            'leitura_atual' => 'required|numeric|min:0|gt:leitura_anterior',
+            'leitura_atual' => 'required|numeric|min:0',
         ];
     }
 

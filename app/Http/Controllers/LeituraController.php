@@ -57,7 +57,7 @@ class LeituraController extends Controller
         $validated = $request->validatedData();
 
         $consumidor = Consumidor::findOrFail($validated['consumidor_id']);
-        $leituraAnterior = $consumidor->ultimaLeitura()?->leitura_atual ?? 0;
+        $leituraAnterior = $validated['leitura_anterior'];
 
         if ($validated['leitura_atual'] < $leituraAnterior) {
             return redirect()->back()

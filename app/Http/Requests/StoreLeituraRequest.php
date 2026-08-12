@@ -17,6 +17,7 @@ class StoreLeituraRequest extends FormRequest
             'consumidor_id' => 'required|integer|exists:consumidores,id',
             'mes' => 'required|digits:2',
             'ano' => 'required|digits:4|integer',
+            'leitura_anterior' => 'required|numeric|min:0',
             'leitura_atual' => 'required|numeric|min:0',
         ];
     }
